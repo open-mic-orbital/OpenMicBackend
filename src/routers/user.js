@@ -11,8 +11,8 @@ router.post('/signup', async (req, res) => {
     const user = new User(req.body);
     try {
         await user.save();
-        // const token = await user.generateAuthToken();
-        res.status(201).send(user); // check response in Postman
+        const token = await user.generateAuthToken();
+        res.status(201).send({ user, token }); // check response in Postman
     } catch(e) {
         res.status(400).send(e); // Unsuccessful signup (wrong format password, etc)
     }
