@@ -57,10 +57,11 @@ router.get('/me', auth, async (req, res) => {
     res.send(req.user);
 })
 
-// Read ALL users (remove later, currently only for dev purposes)
-router.get('/readAll', auth, async (req, res) => {
+// Read users of opposite user type
+router.get('/viewProfiles', auth, async (req, res) => {
     try {
-        const users = await User.find({});
+        const type = (req.user.userType === 'artist' ? 'venue' : 'artist');
+        const users = await User.find({userType: type});
 
         if (!users) { // No users found
             return res.status(404).send();
