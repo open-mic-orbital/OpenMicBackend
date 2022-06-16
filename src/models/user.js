@@ -69,6 +69,8 @@ const userSchema = new mongoose.Schema({
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
+    delete userObject.email;
+    delete userObject.enabled;
     delete userObject.password;
     delete userObject.tokens;
     delete userObject.date;
