@@ -76,7 +76,7 @@ router.get('/viewProfiles', auth, async (req, res) => {
 // Update user
 router.patch('/me', auth, async (req, res) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates =['name', 'email', 'password', 'userType'];
+    const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
