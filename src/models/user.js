@@ -6,10 +6,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-    name: {
+    userName: {
         type: String,
         required: true,
-        trim: true
+        maxLength: 20,
+        unique: true
     },
     email: {
         type: String,
@@ -37,6 +38,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['artist', 'venue'],
         required: true
+    },
+    enabled: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    name: {
+        type: String,
+        trim: true,
+        maxLength: 100
+    },
+    description: {
+        type: String,
+        trim: true,
+        maxLength: 100
     },
     date: {
         type: Date,
