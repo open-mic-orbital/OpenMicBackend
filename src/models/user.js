@@ -54,6 +54,11 @@ const userSchema = new mongoose.Schema({
         trim: true,
         maxLength: 100
     },
+    contact: {
+        type: String,
+        trim: true,
+        maxLength: 100
+    },
     date: {
         type: Date,
         default: Date.now
