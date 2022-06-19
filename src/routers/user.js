@@ -62,7 +62,10 @@ router.get('/me', auth, async (req, res) => {
 router.get('/viewProfiles', auth, async (req, res) => {
     try {
         const type = (req.user.userType === 'artist' ? 'venue' : 'artist');
-        const users = await User.find({userType: type});
+        const users = await User.find({
+            userType: type,
+            enabled: true
+        });
 
         if (!users) { // No users found
             return res.status(404).send();
