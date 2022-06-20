@@ -1,9 +1,11 @@
 // Define routes for user-related requests
 
+// const fs = require('fs');
 const express = require('express');
 const auth = require('../middleware/auth');
 const { update } = require('../models/user');
 const User = require('../models/user');
+// const upload = require('../middleware/multer');
 const router = new express.Router();
 
 
@@ -13,7 +15,7 @@ router.post('/signup', async (req, res) => {
     try {
         await user.save();
         const token = await user.generateAuthToken();
-        res.status(201).send({ user, token }); // check response in Postman
+        res.status(201).send({ user, token });
     } catch(e) {
         res.status(400).send(e); // Unsuccessful signup (wrong format password, etc)
     }
@@ -77,8 +79,8 @@ router.get('/viewProfiles', auth, async (req, res) => {
 })
 
 // Update user
-router.patch('/me', auth, async (req, res) => {
-    const updates = Object.keys(req.body);
+router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
+    const updates = Object.keys(req.body).filter(update => update !== 'img');
     const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description', 'contact', 'enabled'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
@@ -88,6 +90,10 @@ router.patch('/me', auth, async (req, res) => {
 
     try {
         updates.forEach((update) => req.user[update] = req.body[update]);
+        // req.user.img = {
+        //     data: fs.readFileSync(path.join('../middleware/uploads/' + req.file.filename)),
+        //     contentType: 'image/*'
+        // }
         await req.user.save();
         res.send(req.user);
     } catch (e) {

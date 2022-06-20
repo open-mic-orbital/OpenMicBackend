@@ -59,6 +59,10 @@ const userSchema = new mongoose.Schema({
         trim: true,
         maxLength: 100
     },
+    // img: {
+    //     data: Buffer,
+    //     contentType: String
+    // },
     date: {
         type: Date,
         default: Date.now
@@ -75,10 +79,10 @@ userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
     delete userObject.email;
-    delete userObject.enabled;
     delete userObject.password;
     delete userObject.tokens;
     delete userObject.date;
+    // delete userObject.img;
     return userObject;
 }
 
