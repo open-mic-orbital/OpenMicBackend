@@ -2,8 +2,9 @@
 
 // const fs = require('fs');
 const express = require('express');
+const transporter = require('../mails/transporter');
 const auth = require('../middleware/auth');
-const { update } = require('../models/user');
+// const { update } = require('../models/user');
 const User = require('../models/user');
 // const upload = require('../middleware/multer');
 const router = new express.Router();
@@ -29,7 +30,7 @@ router.post('/login', async (req, res) => {
     } catch (e) {
         res.status(400).send();
     }
-})
+});
 
 // Logout current session
 router.post('/logout', auth, async (req, res) => {
@@ -42,23 +43,23 @@ router.post('/logout', auth, async (req, res) => {
     } catch (e) {
         res.status(500).send();
     }
-})
+});
 
 // Logout all sessions
 router.post('/logoutAll', auth, async (req, res) => {
     try {
         req.user.tokens = []
         await req.user.save()
-        res.send()
+        res.send();
     } catch (e) {
         res.status.send(500)
     }
-})
+});
 
 // Read current profile
 router.get('/me', auth, async (req, res) => {
     res.send(req.user);
-})
+});
 
 // Read users of opposite user type
 router.get('/viewProfiles', auth, async (req, res) => {
@@ -76,7 +77,7 @@ router.get('/viewProfiles', auth, async (req, res) => {
     } catch (e) {
         res.status(500).send(); // server error
     }
-})
+});
 
 // Update user
 router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
@@ -99,6 +100,38 @@ router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
     } catch (e) {
         res.status(400).send();
     }
-})
+});
+
+// Route to send email with resetToken (for password reset)
+router.post('/forgot', async (req, res) => {
+    try{
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(400).send('User does not exist');
+        }
+
+        const token = await user.generateResetToken();
+
+        const mailOptions = {
+            from: process.env.MAIL_USER,
+            to: req.body.email,
+            subject: 'Reset Password Link for OpenMic',
+            html:   `<h1>Click the following link to set a new password:</h1>
+                    <a href="${process.env.CLIENT_URL}/PasswordReset/${token}">Reset Password</a>
+                    <h2>Didn't request a password reset?</h2>
+                    You may ignore this e-mail`
+        };
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log(error);
+                return res.status(500).send();
+            } else {
+                res.send();
+            }
+        });
+    } catch (e) {
+        res.status(400).send();
+    }
+});
 
 module.exports = router;
