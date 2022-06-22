@@ -4,6 +4,7 @@
 const express = require('express');
 const transporter = require('../mails/transporter');
 const auth = require('../middleware/auth');
+const resetAuth = require('../middleware/resetAuth');
 // const { update } = require('../models/user');
 const User = require('../models/user');
 // const upload = require('../middleware/multer');
@@ -48,8 +49,8 @@ router.post('/logout', auth, async (req, res) => {
 // Logout all sessions
 router.post('/logoutAll', auth, async (req, res) => {
     try {
-        req.user.tokens = []
-        await req.user.save()
+        req.user.tokens = [];
+        await req.user.save();
         res.send();
     } catch (e) {
         res.status.send(500)
@@ -129,6 +130,24 @@ router.post('/forgot', async (req, res) => {
                 res.send();
             }
         });
+    } catch (e) {
+        res.status(400).send();
+    }
+});
+
+router.patch('/resetPassword', resetAuth, async (req, res) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates =['password'];
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+
+    if (!isValidOperation) {
+        return res.status(400).send({ error: 'Invalid updates!' });
+    }
+
+    try {
+        updates.forEach((update) => req.user[update] = req.body[update]);
+        await req.user.save();
+        res.send(req.user);
     } catch (e) {
         res.status(400).send();
     }
