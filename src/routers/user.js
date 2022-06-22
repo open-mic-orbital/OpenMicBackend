@@ -153,4 +153,13 @@ router.patch('/resetPassword', resetAuth, async (req, res) => {
     }
 });
 
+router.delete('/me', auth, async (req, res) => {
+    try {
+        await User.deleteOne({ _id: req.user._id });
+        res.send(req.user);
+    } catch (e) {
+        res.status(500).send();
+    }
+});
+
 module.exports = router;
