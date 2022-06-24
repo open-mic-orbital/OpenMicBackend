@@ -5,9 +5,8 @@ const express = require('express');
 const transporter = require('../mails/transporter');
 const auth = require('../middleware/auth');
 const resetAuth = require('../middleware/resetAuth');
-// const { update } = require('../models/user');
 const User = require('../models/user');
-// const upload = require('../middleware/multer');
+const multer = require('multer');
 const router = new express.Router();
 
 
@@ -101,6 +100,25 @@ router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
     } catch (e) {
         res.status(400).send();
     }
+});
+
+const upload = multer({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('File must be an image (jpg/jpeg/png)'));
+        }
+        cb(undefined, true);
+    }
+});
+// Post image (change to patch on /me later)
+router.post('/me/image', upload.single('avatar'), async (req, res) => {
+    res.send();
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
 });
 
 // Route to send email with resetToken (for password reset)
