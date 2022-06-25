@@ -1,13 +1,11 @@
 // Define routes for user-related requests
 
-// const fs = require('fs');
 const express = require('express');
 const transporter = require('../mails/transporter');
 const auth = require('../middleware/auth');
 const resetAuth = require('../middleware/resetAuth');
-// const { update } = require('../models/user');
 const User = require('../models/user');
-// const upload = require('../middleware/multer');
+const multer = require('multer');
 const router = new express.Router();
 
 
@@ -46,7 +44,7 @@ router.post('/logout', auth, async (req, res) => {
     }
 });
 
-// Logout all sessions
+// Logout all sessions of one user
 router.post('/logoutAll', auth, async (req, res) => {
     try {
         req.user.tokens = [];
@@ -80,27 +78,46 @@ router.get('/viewProfiles', auth, async (req, res) => {
     }
 });
 
-// Update user
-router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
-    const updates = Object.keys(req.body).filter(update => update !== 'img');
-    const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description', 'contact', 'enabled'];
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+// Middleware to handle image upload validation
+const upload = multer({
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('File must be an image (jpg/jpeg/png)'));
+        }
+        cb(undefined, true);
+    }
+});
 
+// Update user
+router.patch('/me', auth, upload.single('img'), async (req, res) => {
+    const updates = Object.keys(req.body);
+
+    const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description', 'contact', 'enabled'];
+
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
     if (!isValidOperation) {
         return res.status(400).send({ error: 'Invalid updates!' });
     }
 
     try {
+        // Update every non-image field
         updates.forEach((update) => req.user[update] = req.body[update]);
-        // req.user.img = {
-        //     data: fs.readFileSync(path.join('../middleware/uploads/' + req.file.filename)),
-        //     contentType: 'image/*'
-        // }
+        
+        // Add image to user, if any
+        if (req.file) {
+            req.user.img = req.file.buffer;
+        }
+
         await req.user.save();
         res.send(req.user);
     } catch (e) {
-        res.status(400).send();
+        res.status(400).send({ error: 'Update failed' });
     }
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message });
 });
 
 // Route to send email with resetToken (for password reset)
