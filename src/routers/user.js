@@ -1,6 +1,5 @@
 // Define routes for user-related requests
 
-// const fs = require('fs');
 const express = require('express');
 const transporter = require('../mails/transporter');
 const auth = require('../middleware/auth');
@@ -45,7 +44,7 @@ router.post('/logout', auth, async (req, res) => {
     }
 });
 
-// Logout all sessions
+// Logout all sessions of one user
 router.post('/logoutAll', auth, async (req, res) => {
     try {
         req.user.tokens = [];
@@ -79,31 +78,8 @@ router.get('/viewProfiles', auth, async (req, res) => {
     }
 });
 
-// Update user
-router.patch('/me', auth, async (req, res) => { //[auth, upload.single('image')]
-    const updates = Object.keys(req.body).filter(update => update !== 'img');
-    const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description', 'contact', 'enabled'];
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
-
-    if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' });
-    }
-
-    try {
-        updates.forEach((update) => req.user[update] = req.body[update]);
-        // req.user.img = {
-        //     data: fs.readFileSync(path.join('../middleware/uploads/' + req.file.filename)),
-        //     contentType: 'image/*'
-        // }
-        await req.user.save();
-        res.send(req.user);
-    } catch (e) {
-        res.status(400).send();
-    }
-});
-
+// Middleware to handle image upload validation
 const upload = multer({
-    dest: 'avatars',
     limits: {
         fileSize: 1000000
     },
@@ -114,9 +90,32 @@ const upload = multer({
         cb(undefined, true);
     }
 });
-// Post image (change to patch on /me later)
-router.post('/me/image', upload.single('avatar'), async (req, res) => {
-    res.send();
+
+// Update user
+router.patch('/me', auth, upload.single('img'), async (req, res) => {
+    const updates = Object.keys(req.body);
+
+    const allowedUpdates =['userName', 'email', 'password', 'userType', 'name', 'description', 'contact', 'enabled'];
+
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
+    if (!isValidOperation) {
+        return res.status(400).send({ error: 'Invalid updates!' });
+    }
+
+    try {
+        // Update every non-image field
+        updates.forEach((update) => req.user[update] = req.body[update]);
+        
+        // Add image to user, if any
+        if (req.file) {
+            req.user.img = req.file.buffer;
+        }
+
+        await req.user.save();
+        res.send(req.user);
+    } catch (e) {
+        res.status(400).send({ error: 'Update failed' });
+    }
 }, (error, req, res, next) => {
     res.status(400).send({ error: error.message });
 });
