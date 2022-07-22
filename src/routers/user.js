@@ -6,6 +6,7 @@ const auth = require("../middleware/auth");
 const resetAuth = require("../middleware/resetAuth");
 const User = require("../models/user");
 const multer = require("multer");
+const sharp = require("sharp");
 const router = new express.Router();
 
 // Create user
@@ -126,7 +127,11 @@ router.patch(
 
       // Add image to user, if any
       if (req.file) {
-        req.user.img = req.file.buffer;
+        const buffer = await sharp(req.file.buffer)
+          .resize({ width: 128, height: 128 })
+          .png()
+          .toBuffer();
+        req.user.img = buffer;
       }
 
       await req.user.save();
