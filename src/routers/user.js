@@ -82,6 +82,20 @@ router.get("/viewProfiles", auth, async (req, res) => {
   }
 });
 
+router.get("/getProfile", auth, async (req, res) => {
+  try {
+    const user = await User.find({
+      _id: req.body._id,
+    });
+    if (!user) {
+      return res.status(404).send();
+    }
+    res.send(user);
+  } catch (e) {
+    res.status(500).send();
+  }
+});
+
 // Middleware to handle image upload validation
 const upload = multer({
   limits: {
