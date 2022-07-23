@@ -11,12 +11,7 @@ router.post("/", async (req, res) => {
 
   try {
     const savedConversation = await newConversation.save();
-    const obj = {
-      conversation: savedConversation,
-      senderName: req.body.senderName,
-      senderImg: req.body.senderImg,
-    };
-    return res.status(200).json(obj);
+    return res.status(200).json(savedConversation);
   } catch (e) {
     res.status(500).json(e);
   }
