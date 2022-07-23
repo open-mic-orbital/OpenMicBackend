@@ -12,7 +12,9 @@ const port = process.env.PORT;
 app.use(express.json()); // to parse incoming json
 app.use(cors());
 app.use("/users", userRouter);
+app.use(cors());
 app.use("/conversations", conversationRouter);
+app.use(cors());
 app.use("/messages", messageRouter);
 
 app.listen(port, () => {
