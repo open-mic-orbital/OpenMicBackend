@@ -82,7 +82,7 @@ router.get("/viewProfiles", auth, async (req, res) => {
   }
 });
 
-router.get("/getProfile", auth, async (req, res) => {
+router.post("/getProfile", auth, async (req, res) => {
   try {
     const user = await User.find({
       _id: req.body._id,
