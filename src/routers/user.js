@@ -5,8 +5,8 @@ const transporter = require("../mails/transporter");
 const auth = require("../middleware/auth");
 const resetAuth = require("../middleware/resetAuth");
 const User = require("../models/user");
-const multer = require("multer");
-const sharp = require("sharp");
+const multer = require("multer"); // to handle image uploads
+const sharp = require("sharp"); // for uploaded image formatting
 const router = new express.Router();
 
 // Create user
@@ -21,6 +21,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// Login user
 router.post("/login", async (req, res) => {
   try {
     const user = await User.findByCredentials(
@@ -82,6 +83,13 @@ router.get("/viewProfiles", auth, async (req, res) => {
   }
 });
 
+// Get user details (POST request to take in user id)
+/**
+ * NOTE: This request can be made a GET request by not taking in a req.body.
+ * This is because the authentication process already returns us the user
+ * that we wish to find.
+ * The fetch request being made clientside would need to change accordingly on doing so.
+ */
 router.post("/getProfile", auth, async (req, res) => {
   try {
     const user = await User.find({
@@ -191,6 +199,7 @@ router.post("/forgot", async (req, res) => {
   }
 });
 
+// Update password after authorization by reset token
 router.patch("/resetPassword", resetAuth, async (req, res) => {
   const updates = Object.keys(req.body);
   const allowedUpdates = ["password"];
@@ -211,6 +220,7 @@ router.patch("/resetPassword", resetAuth, async (req, res) => {
   }
 });
 
+// Delete user
 router.delete("/me", auth, async (req, res) => {
   try {
     await User.deleteOne({ _id: req.user._id });

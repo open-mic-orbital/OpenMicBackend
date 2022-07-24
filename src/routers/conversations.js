@@ -3,7 +3,6 @@ const router = express.Router();
 const Conversation = require("../models/Conversation");
 
 // New Conversation
-
 router.post("/", async (req, res) => {
   const newConversation = new Conversation({
     members: [req.body.senderId, req.body.receiverId],
@@ -18,7 +17,6 @@ router.post("/", async (req, res) => {
 });
 
 // Get user conversations
-
 router.get("/:userId", async (req, res) => {
   try {
     const conversation = await Conversation.find({
